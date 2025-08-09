@@ -80,6 +80,8 @@ public:
     // --------------------------------------------------------------------------
     // Define the horizontal window (column range)
     void setData(uint16_t x, uint16_t dx) {
+        x += XSCREEN_OFFSET;
+        x += XSCREEN_OFFSET;
         m_Data[0] = x >> 8;       // High byte of the starting column
         m_Data[1] = x & 0xFF;     // Low byte of the starting column
         m_Data[2] = dx >> 8;      // High byte of the ending column
@@ -110,6 +112,8 @@ public:
     // --------------------------------------------------------------------------
     // Define the vertical window (row range)
     void setData(uint16_t y, uint16_t dy) {
+        y += YSCREEN_OFFSET;
+        y += YSCREEN_OFFSET;
         m_Data[0] = y >> 8;       // High byte of the starting row
         m_Data[1] = y & 0xFF;     // Low byte of the starting row
         m_Data[2] = dy >> 8;      // High byte of the ending row
@@ -204,7 +208,7 @@ friend class cImageLayer;
     //   x, y: Position of the layer
     //   Width, Height: Dimensions of the layer
     //   zPos: Z-order of the layer (stacking order)
-    cImageLayer* addLayer(const uint8_t * pLayerFrame, uint16_t x, uint16_t y, uint16_t Width, uint16_t Height, uint8_t zPos);
+    cImageLayer* addLayer(const uint8_t * pLayerFrame, uint16_t x, uint16_t y, uint16_t Width, uint16_t Height, uint8_t zPos, uint8_t NbFrame = 1);
     
     // --------------------------------------------------------------------------
     // Set the screen's rotation and adjust dirty block configuration
@@ -477,11 +481,25 @@ friend cDisplay;
 public:
     cImageLayer(){}  // Constructor
     virtual ~cImageLayer() {}  // Destructor
+
+    void setFrame(uint8_t Frame){
+        if(Frame > m_NbFrame){
+            Frame = m_NbFrame -1;
+        }else{
+            Frame = (Frame > 1) ? Frame-1 : 0;
+        }
+        m_pImageLayerFrame = m_pLayerFrameStart + (m_FrameSize * Frame);
+        m_pDisplay->invalidateRect(m_X, m_Y, m_X + m_Width-1, m_Y + m_Height-1);  // Invalidate the layer
+    };
    
 protected :
     // --------------------------------------------------------------------------
     // Initialize the layer with display, DMA2D handler, frame buffer, dimensions, and Z position
-    void init(cDisplay* pDisplay, const uint8_t* pLayerFrame, uint16_t y, uint16_t x, uint16_t Width, uint16_t Height, uint8_t zPos);
+    void init(cDisplay* pDisplay, const uint8_t* pLayerFrame, uint16_t y, uint16_t x, uint16_t Width, uint16_t Height, uint8_t zPos, uint8_t NbFrame=1);
+
+    uint8_t         m_NbFrame;
+    const uint8_t*  m_pLayerFrameStart;
+    uint32_t        m_FrameSize;
 
 };
 

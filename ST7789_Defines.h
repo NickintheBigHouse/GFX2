@@ -183,9 +183,10 @@
     SendData(0x17);
     SendData(0x1b);
     SendData(0x1e);
-
+#ifndef INV_COLOR
     SendCommand(ST7789_INVON);
     SendCommand(ST7789_INVON);
+#endif
     System::Delay(120);
 
     SendCommand(ST7789_DISPON);    //Display on

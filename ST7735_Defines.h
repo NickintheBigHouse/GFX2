@@ -147,9 +147,9 @@ void DadGFX::TFT_SPI::Initialise(){
     
     SendCommand(ST7735_VMCTR1 );        // 12: Power control
       SendData(0x0E);
-    
+#ifndef INV_COLOR    
     SendCommand(ST7735_INVOFF );        // 13: Don't invert display
-    
+#endif
     SendCommand(ST7735_MADCTL );        // 14: Memory access control (directions)
       SendData(0xC0 | TFT_MAD_COLOR_ORDER); //     row addr/col addr); bottom to top refresh
     

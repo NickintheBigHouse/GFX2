@@ -19,10 +19,15 @@
 // Color encoding
 // 18-bit encoding: RGB666
 // 16-bit encoding: RGB565
-
-//-------------------------------------------------------------------------
+//
 //#define TFT_COLOR 18            // Uncomment for 18-bit color mode
 #define TFT_COLOR 16              // Use 16-bit color mode (default)
+//#define INV_COLOR 				  // Screen displays with inverted colors remove/comment this if not needed"
+
+//-------------------------------------------------------------------------
+// Screen Offset
+#define XSCREEN_OFFSET 0
+#define YSCREEN_OFFSET 0
 
 //-------------------------------------------------------------------------
 // SPI bus configuration
@@ -33,8 +38,8 @@
 // GPIO configuration for SPI pins
 #define TFT_MOSI D10              // SPI MOSI (Master Out, Slave In) pin
 #define TFT_SCLK D8               // SPI clock (SCLK) pin
-#define TFT_DC   D21              // Data/Command control pin
-#define TFT_RST  D20              // Reset pin for the display
+#define TFT_DC   D20              // Data/Command control pin
+#define TFT_RST  D21              // Reset pin for the display
 
 //-------------------------------------------------------------------------
 // Define the block size used for partial screen updates
@@ -51,6 +56,4 @@
 
 //-------------------------------------------------------------------------
 // FIFO size for SPI block transmission via DMA
-// Note: The number is limited due to FIFO being placed in SRAM D1, 
-// which may also be used by other processes
 #define SIZE_FIFO 5  // Number of blocks in the FIFO buffer

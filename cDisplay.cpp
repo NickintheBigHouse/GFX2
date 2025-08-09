@@ -18,14 +18,17 @@ namespace DadGFX {
 
 // --------------------------------------------------------------------------
 // Initialize the layer with display, frame buffer, dimensions, and Z position
-void cImageLayer::init(cDisplay* pDisplay, const uint8_t* pLayerFrame, uint16_t y, uint16_t x, uint16_t Width, uint16_t Height, uint8_t zPos){
+void cImageLayer::init(cDisplay* pDisplay, const uint8_t* pLayerFrame, uint16_t y, uint16_t x, uint16_t Width, uint16_t Height, uint8_t zPos, uint8_t NbFrame){
     m_pDisplay = pDisplay;            // Pointer to display object
     m_Width = Width;                  // Layer width
     m_Height = Height;                // Layer height
     m_X = x;                          // X position of layer
     m_Y = y;                          // Y position of layer
     m_Z = zPos;                       // Z order of layer
+    m_NbFrame = NbFrame;
+    m_FrameSize = m_Width * m_Height * 4;
     m_pImageLayerFrame = pLayerFrame;
+    m_pLayerFrameStart = pLayerFrame;
 }
 
 //***********************************************************************************
@@ -376,7 +379,7 @@ cLayer* cDisplay::addLayer(sColor* pLayerFrame, uint16_t x, uint16_t y, uint16_t
 //   x, y: Position of the layer
 //   Width, Height: Dimensions of the layer
 //   zPos: Z-order of the layer (stacking order)
-cImageLayer* cDisplay::addLayer(const uint8_t* pLayerFrame, uint16_t x, uint16_t y, uint16_t Width, uint16_t Height, uint8_t zPos) {
+cImageLayer* cDisplay::addLayer(const uint8_t* pLayerFrame, uint16_t x, uint16_t y, uint16_t Width, uint16_t Height, uint8_t zPos, uint8_t NbFrame) {
     // Check if the new position is within screen boundaries
     if(x >= m_Width) x = m_Width-1;
     if(y >= m_Height) y = m_Height-1;
@@ -385,7 +388,7 @@ cImageLayer* cDisplay::addLayer(const uint8_t* pLayerFrame, uint16_t x, uint16_t
     if (!pNewLayer) {
         return pNewLayer;  // Return nullptr if memory allocation fails
     }
-    pNewLayer->init(this, pLayerFrame, x, y, Width, Height, zPos);
+    pNewLayer->init(this, pLayerFrame, x, y, Width, Height, zPos, NbFrame);
 
     m_TabLayers.push_back(static_cast<cLayerBase*>(pNewLayer));  // Add the layer to the list
     m_LayersChange = 1;                // Mark layers as changed
@@ -646,8 +649,11 @@ bool cDisplay::AddBloc(uint16_t x, uint16_t y) {
 #endif
         pFrame++;
         }
-    }    
+    }
 
+    // Disable interrupts to safely access shared resources
+    __disable_irq();
+    
     // Increment the FIFO input index, wrapping around if necessary
     m_FIFO_in += 1;
     if (m_FIFO_in >= SIZE_FIFO) {
@@ -657,6 +663,9 @@ bool cDisplay::AddBloc(uint16_t x, uint16_t y) {
     // Increment the count of elements in the FIFO
     m_FIFO_NbElements += 1;
 
+    // Re-enable interrupts once the safety check is complete
+    __enable_irq();
+    
     // Return true to indicate successful addition to the FIFO
     return true;
 }
@@ -689,10 +698,11 @@ bool cDisplay::sendDMA() {
     // CASET (Column Address Set) command is sent first
     // - The callback function `sendCASETDMAData` will handle subsequent steps
     // - `this` provides context to the callback for handling other DMA stages
+     __disable_irq();
     SendDMACommand(&m_pFIFO->m_CmdCASET[m_FIFO_out].m_Commande, 
                    cDisplay::sendCASETDMAData, 
                    this);
-
+    __enable_irq();
     // Return true to indicate that transmission was successfully started
     return true;
 }
@@ -705,9 +715,11 @@ bool cDisplay::sendDMA() {
 //   context: Pointer to the cDisplay instance (used for accessing class members)
 //   result:  Result of the DMA operation (success/failure)
 void cDisplay::sendCASETDMAData(void* context, daisy::SpiHandle::Result result) {
+    __disable_irq();
     cDisplay *pthis = (cDisplay *)context;  // Retrieve the cDisplay instance
     // Start transferring the CASET data and set the next callback to sendRASETDMACmd
     pthis->SendDMAData(pthis->m_pFIFO->m_CmdCASET[pthis->m_FIFO_out].m_Data, 4, cDisplay::sendRASETDMACmd, context);
+    __enable_irq();
 }
 
 // --------------------------------------------------------------------------
@@ -718,9 +730,11 @@ void cDisplay::sendCASETDMAData(void* context, daisy::SpiHandle::Result result) 
 //   context: Pointer to the cDisplay instance
 //   result:  Result of the DMA operation
 void cDisplay::sendRASETDMACmd(void* context, daisy::SpiHandle::Result result) {
+    __disable_irq();
     cDisplay *pthis = (cDisplay *)context;  // Retrieve the cDisplay instance
     // Initiate the DMA transfer of the RASET command and set the next callback to sendRASETDMAData
     pthis->SendDMACommand(&pthis->m_pFIFO->m_CmdRASET[pthis->m_FIFO_out].m_Commande, cDisplay::sendRASETDMAData, context);
+    __enable_irq();
 }
 
 // --------------------------------------------------------------------------
@@ -731,9 +745,11 @@ void cDisplay::sendRASETDMACmd(void* context, daisy::SpiHandle::Result result) {
 //   context: Pointer to the cDisplay instance
 //   result:  Result of the DMA operation
 void cDisplay::sendRASETDMAData(void* context, daisy::SpiHandle::Result result) {
+    __disable_irq();
     cDisplay *pthis = (cDisplay *)context;  // Retrieve the cDisplay instance
     // Start transferring the RASET data and set the next callback to sendRAWWRDMACmd
     pthis->SendDMAData(pthis->m_pFIFO->m_CmdRASET[pthis->m_FIFO_out].m_Data, 4, cDisplay::sendRAWWRDMACmd, context);
+    __enable_irq();
 }
 
 // --------------------------------------------------------------------------
@@ -744,9 +760,11 @@ void cDisplay::sendRASETDMAData(void* context, daisy::SpiHandle::Result result) 
 //   context: Pointer to the cDisplay instance
 //   result:  Result of the DMA operation
 void cDisplay::sendRAWWRDMACmd(void* context, daisy::SpiHandle::Result result) {
+    __disable_irq();
     cDisplay *pthis = (cDisplay *)context;  // Retrieve the cDisplay instance
     // Start transferring the RAWWR data and set the next callback to sendRAWWRDMAData
     pthis->SendDMACommand(&pthis->m_pFIFO->m_CmdRAWWR[pthis->m_FIFO_out].m_Commande, cDisplay::sendRAWWRDMAData, context);
+    __enable_irq();
 }
 
 // --------------------------------------------------------------------------
@@ -757,9 +775,11 @@ void cDisplay::sendRAWWRDMACmd(void* context, daisy::SpiHandle::Result result) {
 //   context: Pointer to the cDisplay instance
 //   result:  Result of the DMA operation
 void cDisplay::sendRAWWRDMAData(void* context, daisy::SpiHandle::Result result) {
+    __disable_irq();
     cDisplay *pthis = (cDisplay *)context;  // Retrieve the cDisplay instance
     // Transfer the pixel data and set the next callback to endDMA
     pthis->SendDMAData(pthis->m_pFIFO->m_CmdRAWWR[pthis->m_FIFO_out].m_Data, TAILLE_BLOC, cDisplay::endDMA, context);
+    __enable_irq();
 }
 
 // --------------------------------------------------------------------------
@@ -771,6 +791,7 @@ void cDisplay::sendRAWWRDMAData(void* context, daisy::SpiHandle::Result result) 
 //   context: Pointer to the cDisplay instance
 //   result:  Result of the DMA operation
 void cDisplay::endDMA(void* context, daisy::SpiHandle::Result result) {
+    __disable_irq();
     cDisplay *pthis = (cDisplay *)context;  // Retrieve the cDisplay instance
     
     // Move to the next block in the FIFO
@@ -788,6 +809,7 @@ void cDisplay::endDMA(void* context, daisy::SpiHandle::Result result) {
         // If the FIFO is empty, mark the display as no longer busy
         pthis->m_Busy = false;
     }
+    __enable_irq();
 }
 
 } // DadGFX
