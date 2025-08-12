@@ -80,8 +80,10 @@ public:
     // --------------------------------------------------------------------------
     // Define the horizontal window (column range)
     void setData(uint16_t x, uint16_t dx) {
-        x += XSCREEN_OFFSET;
-        x += XSCREEN_OFFSET;
+        #if XSCREEN_OFFSET != 0
+            x += XSCREEN_OFFSET;
+            dx += XSCREEN_OFFSET;
+        #endif
         m_Data[0] = x >> 8;       // High byte of the starting column
         m_Data[1] = x & 0xFF;     // Low byte of the starting column
         m_Data[2] = dx >> 8;      // High byte of the ending column
@@ -112,8 +114,10 @@ public:
     // --------------------------------------------------------------------------
     // Define the vertical window (row range)
     void setData(uint16_t y, uint16_t dy) {
+        #if YSCREEN_OFFSET != 0
         y += YSCREEN_OFFSET;
-        y += YSCREEN_OFFSET;
+        dy += YSCREEN_OFFSET;
+        #endif
         m_Data[0] = y >> 8;       // High byte of the starting row
         m_Data[1] = y & 0xFF;     // Low byte of the starting row
         m_Data[2] = dy >> 8;      // High byte of the ending row
