@@ -8,7 +8,8 @@
 #include "per/spi.h"
 #include "per/gpio.h"
 #include "sys/system.h"
-#include "../UserConfig.h"
+// #include "../UserConfig.h"
+#include "UserConfig.h"
 
 // TFT Generic commands
 #define TFT_NOP     0x00    // No operation
