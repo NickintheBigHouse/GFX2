@@ -1,3 +1,19 @@
+#pragma once
+
+// 1. Fix the PROGMEM error for ARM
+#ifndef PROGMEM
+#define PROGMEM
+#endif
+
+// 2. Include the definitions
+#include "../GFXFont.h"
+
+// 3. Fix the Namespace (Tell the compiler to look inside DadGFX)
+using namespace DadGFX;
+
+// 4. Fix the Name Mismatch (Map 'GFXCFont' to 'GFXfont')
+typedef GFXCFont GFXfont;
+
 const uint8_t FreeSans12pt7bBitmaps[] PROGMEM = {
   0x00, 0xFF, 0xFF, 0xFF, 0x83, 0xC0, 0xCF, 0x3C, 0xF3, 0x4D, 0x30, 0x06,
   0x60, 0x23, 0x03, 0x18, 0x18, 0xC7, 0xFF, 0xBF, 0xFC, 0x23, 0x03, 0x18,
