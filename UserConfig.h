@@ -41,3 +41,13 @@
 
 // 7. FIFO Size
 #define SIZE_FIFO 5
+
+// Rotation: 0, 90, 180, 270 degrees
+#define TFT_ROTATION 270
+
+// Color format
+#define TFT_RGB_ORDER_BGR  // or TFT_RGB_ORDER_RGB depending on your display
+
+// Optional: Enable/disable features
+#define GFX2_USE_DMA 1
+#define GFX2_ENABLE_ANTIALIASING 0
