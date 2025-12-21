@@ -234,6 +234,8 @@ friend class cImageLayer;
         return m_Height;
     }
 
+    bool isBusy() const { return m_Busy; }
+
 protected :
     // -----------------------------------------------------------------------------
     // Blends two rectangular blocks of pixels using alpha compositing.
@@ -270,7 +272,7 @@ protected :
     // Marks the corresponding dirty block for refresh
     inline void invalidatePoint(uint16_t x0, uint16_t y0) {
         m_DirtyBlocks[x0 / m_DitryBlocWidth][y0 / m_DitryBlocHeight] = 1;
-    }
+    }    
 private :
     // --------------------------------------------------------------------------
     // Mark all blocks as dirty (require refresh)
@@ -305,9 +307,9 @@ private :
     // --------------------------------------------------------------------------
     // Check if a transmission is in progress
     // Returns true if the display is currently busy with a transmission
-    inline bool isBusy() {
-        return m_Busy;
-    }
+    // inline bool isBusy() {
+    //    return m_Busy;
+    //}
 
     // --------------------------------------------------------------------------
     // Add a block to the FIFO for transmission

@@ -40,7 +40,7 @@
 #define BLOC_HEIGHT     TFT_HEIGHT / NB_BLOC_HEIGHT    
 
 // 7. FIFO Size
-#define SIZE_FIFO 5
+#define SIZE_FIFO 10 // typically 5
 
 // Rotation: 0, 90, 180, 270 degrees
 #define TFT_ROTATION 270
