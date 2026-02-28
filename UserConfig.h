@@ -31,16 +31,17 @@
 #define TFT_SCLK D8               
 #define TFT_DC   D9   // Emerald uses D9 for DC
 #define TFT_RST  D11  // Emerald uses D11 for Reset
+//Why isn't there a CS pin? It's likely tied to ground on the PCB since we're only using one SPI device, which is common in microcontroller projects to save pins.
 
 // 6. Block Sizing (Must divide evenly into 128x160)
-#define NB_BLOC_WIDTH   8               
+#define NB_BLOC_WIDTH   8               //larger means more blocks? done to bring ram_d2_dma down
 #define NB_BLOC_HEIGHT  10               
 #define NB_BLOCS        NB_BLOC_WIDTH * NB_BLOC_HEIGHT 
 #define BLOC_WIDTH      TFT_WIDTH / NB_BLOC_WIDTH      
 #define BLOC_HEIGHT     TFT_HEIGHT / NB_BLOC_HEIGHT    
 
 // 7. FIFO Size
-#define SIZE_FIFO 10 // typically 5
+#define SIZE_FIFO 40 // typically 5, bumped to 10 for most of emerald's build till febuary 25th 2026
 
 // Rotation: 0, 90, 180, 270 degrees
 #define TFT_ROTATION 270
